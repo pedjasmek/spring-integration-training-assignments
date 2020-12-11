@@ -1,0 +1,26 @@
+{
+  "orderId": "newOrder1",
+  "items" : [
+    {
+      "itemNumber": "888",
+      "productName": "Popcorn",
+      "category": "FOOD",
+      "price": 0.99,
+      "quantity": 3
+    },
+    {
+      "itemNumber": "777",
+      "productName": "Ice Cream",
+      "category": "FOOD",
+      "price": 1.5,
+      "quantity": 2
+    },
+    {
+      "itemNumber": "555",
+      "productName": "Star Wars T-Shirt",
+      "category": "APPAREL",
+      "price": 5.49,
+      "quantity": 1
+    }
+  ]
+}
