@@ -1,4 +1,4 @@
-package com.deavensoft.springintegrationtraining.config;
+package com.deavensoft.springintegrationtraining.configsolutions;
 
 import com.deavensoft.springintegrationtraining.domain.OrderItem;
 import java.io.File;
@@ -30,7 +30,7 @@ import org.springframework.integration.mail.dsl.Mail;
  *      one file, containing OrderItems with categorie FOOD
  *
  */
-@Configuration
+//@Configuration // commented-out, so the config is not picked up by the Spring Boot
 @Slf4j
 public class Assignment5BonusConfig {
 
@@ -43,16 +43,41 @@ public class Assignment5BonusConfig {
 
   @Bean
   public IntegrationFlow apparelSendMailFlow() {
-    return null; // TODO - Use IntegrationFlows
+    return IntegrationFlows.from("apparelChannel")
+        .enrichHeaders(Mail.headers()
+            .subject("New Apparel Order")
+            .from("robot@shop.com")
+            .toFunction(m -> new String[] { "apparel@shop.com" }))
+        .transform(OrderItem::toString)
+        .handle(Mail.outboundAdapter("localhost")
+            .port(25)
+            .protocol("smtp"),
+            e -> e.id("apparelSendMailEndpoint"))
+        .get();
   }
 
   @Bean
   public IntegrationFlow electronicsSendMailFlow() {
-    return null; // TODO - Use IntegrationFlows
+    return IntegrationFlows.from("electronicsChannel")
+        .enrichHeaders(Mail.headers()
+            .subjectFunction(m -> "New Electronics Order: " + ((OrderItem)m.getPayload()).getProductName())
+            .from("robot@shop.com")
+            .toFunction(m -> new String[] { "electronics@shop.com" }))
+        .transform(OrderItem::toString)
+        .handle(Mail.outboundAdapter("localhost")
+            .port(25)
+            .protocol("smtp"),
+            e -> e.id("electronicsSendMailEndpoint"))
+        .get();
   }
 
   @Bean
   public IntegrationFlow uncategorizedLogging() {
-    return null; // TODO - Use IntegrationFlows
+    log.info("Temp folder: {}", TEMP_FOLDER);
+    return IntegrationFlows.from("uncategorizedChannel")
+        .transform(OrderItem::toString)
+        .handle(Files.outboundAdapter(TEMP_FOLDER)
+            .fileExistsMode(FileExistsMode.APPEND).appendNewLine(true))
+        .get();
   }
 }

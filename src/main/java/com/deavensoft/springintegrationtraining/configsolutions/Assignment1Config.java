@@ -1,4 +1,4 @@
-package com.deavensoft.springintegrationtraining.config;
+package com.deavensoft.springintegrationtraining.configsolutions;
 
 import java.io.File;
 import java.net.URL;
@@ -54,7 +54,7 @@ import org.springframework.messaging.MessageHandler;
  *
  * 5. Run Assignment1Test. It should pass.
  */
-@Configuration
+//@Configuration // commented-out, so the config is not picked up by the Spring Boot
 @Slf4j
 public class Assignment1Config {
 
@@ -98,17 +98,25 @@ public class Assignment1Config {
 
   @Bean
   public MessageChannel fileInputChannel() {
-    return null; // TODO - implement
+    return new PublishSubscribeChannel();
   }
 
   @Bean
   @InboundChannelAdapter(value = "fileInputChannel", poller = @Poller(fixedDelay = "100"))
   public MessageSource<File> xmlFileReadingMessageSource() {
-    return null; // TODO - implement
+    FileReadingMessageSource source = new FileReadingMessageSource();
+    source.setDirectory(getDirectory());
+    CompositeFileListFilter<File> compositeFileListFilter= new CompositeFileListFilter<>();
+    compositeFileListFilter.addFilter(new AcceptOnceFileListFilter<>());
+    compositeFileListFilter.addFilter(new SimplePatternFileListFilter("*.xml"));
+    source.setFilter(compositeFileListFilter);
+    return source;
   }
 
-//  @Bean
-//  @Transformer(inputChannel = "fileInputChannel", outputChannel = "fileToStringChannel")
-  // TODO - uncomment lines above and define the transformer bean
+  @Bean
+  @Transformer(inputChannel = "fileInputChannel", outputChannel = "fileToStringChannel")
+  public FileToStringTransformer fileToStringTransformer() {
+    return new FileToStringTransformer();
+  }
 
 }

@@ -1,4 +1,4 @@
-package com.deavensoft.springintegrationtraining.config;
+package com.deavensoft.springintegrationtraining.configsolutions;
 
 import com.deavensoft.springintegrationtraining.domain.OrderItem;
 import com.deavensoft.springintegrationtraining.service.InventoryService;
@@ -35,7 +35,7 @@ import org.springframework.messaging.MessageChannel;
  *
  * 5. Run Assignment4Test. It should pass.
  */
-@Configuration
+//@Configuration // commented-out, so the config is not picked up by the Spring Boot
 @Slf4j
 public class Assignment4Config {
 
@@ -44,5 +44,44 @@ public class Assignment4Config {
     return new InventoryServiceImpl();
   }
 
-  // TODO
+  @Bean
+  public MessageChannel filteredOrderItemObjectChannel() {
+    return MessageChannels.publishSubscribe().get();
+  }
+
+  @Filter(inputChannel = "orderItemObjectChannel", outputChannel = "filteredOrderItemObjectChannel")
+  public boolean filter(OrderItem orderItem) {
+    return inventoryService().isItemAvailable(orderItem.getItemNumber());
+  }
+
+  @Bean
+  public MessageChannel apparelChannel() {
+    return MessageChannels.publishSubscribe().get();
+  }
+
+  @Bean
+  public MessageChannel electronicsChannel() {
+    return MessageChannels.publishSubscribe().get();
+  }
+
+  @Bean
+  public MessageChannel uncategorizedChannel() {
+    return MessageChannels.publishSubscribe().get();
+  }
+
+  @Router(inputChannel = "filteredOrderItemObjectChannel")
+  public List<String> route(OrderItem orderItem) {
+    String routingChannel;
+    switch (orderItem.getCategory()) {
+      case "APPAREL":
+        routingChannel = "apparelChannel";
+        break;
+      case "ELECTRONICS":
+        routingChannel = "electronicsChannel";
+        break;
+      default:
+        routingChannel = "uncategorizedChannel";
+    }
+    return Collections.singletonList(routingChannel);
+  }
 }

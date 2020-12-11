@@ -1,4 +1,4 @@
-package com.deavensoft.springintegrationtraining.config;
+package com.deavensoft.springintegrationtraining.configsolutions;
 
 import com.deavensoft.springintegrationtraining.domain.OrderItem;
 import lombok.extern.slf4j.Slf4j;
@@ -28,10 +28,29 @@ import org.springframework.oxm.jaxb.Jaxb2Marshaller;
  *
  * 4. Run Assignment2Test. It should pass.
  */
-@Configuration
+//@Configuration // commented-out, so the config is not picked up by the Spring Boot
 @Slf4j
 public class Assignment2Config {
 
-  // TODO - implement needed beans
+  @Bean
+  public MessageChannel orderItemObjectChannel(MessageChannel logChannel) {
+    return MessageChannels.publishSubscribe()
+        .interceptor(new WireTap(logChannel))
+        .get();
+  }
 
+  @Bean
+  @BridgeTo("orderItemObjectChannel")
+  public MessageChannel xmlOrderItemObjectChannel() {
+    return MessageChannels.publishSubscribe().get();
+  }
+
+  @Bean
+  @Transformer(inputChannel = "fileInputChannel", outputChannel = "xmlOrderItemObjectChannel")
+  public UnmarshallingTransformer marshallingTransformer() {
+    Jaxb2Marshaller jaxb2Marshaller = new Jaxb2Marshaller();
+    jaxb2Marshaller.setClassesToBeBound(OrderItem.class);
+
+    return new UnmarshallingTransformer(jaxb2Marshaller);
+  }
 }

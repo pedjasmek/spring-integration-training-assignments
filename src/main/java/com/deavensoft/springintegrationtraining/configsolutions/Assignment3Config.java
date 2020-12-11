@@ -1,4 +1,4 @@
-package com.deavensoft.springintegrationtraining.config;
+package com.deavensoft.springintegrationtraining.configsolutions;
 
 import com.deavensoft.springintegrationtraining.domain.Order;
 import com.deavensoft.springintegrationtraining.domain.OrderItem;
@@ -41,7 +41,7 @@ import org.springframework.messaging.MessageChannel;
  *
  * 5. Run Assignment3Test. It should pass.
  */
-@Configuration
+//@Configuration // commented-out, so the config is not picked up by the Spring Boot
 @Slf4j
 public class Assignment3Config {
   private static final String JSON_INBOUND_PATH = "inbound/json";
@@ -63,10 +63,37 @@ public class Assignment3Config {
   }
 
   @Bean
+  @BridgeTo("orderItemObjectChannel")
+  public MessageChannel jsonOrderItemObjectChannel() {
+    return MessageChannels.publishSubscribe().get();
+  }
+
+  @Bean
+  @InboundChannelAdapter(value = "jsonFileInputChannel", poller = @Poller(fixedDelay = "100"))
+  public MessageSource<File> fileReadingMessageSource() {
+    FileReadingMessageSource source = new FileReadingMessageSource();
+    source.setDirectory(getDirectory());
+    CompositeFileListFilter<File> compositeFileListFilter= new CompositeFileListFilter<>();
+    compositeFileListFilter.addFilter(new AcceptOnceFileListFilter<>());
+    compositeFileListFilter.addFilter(new SimplePatternFileListFilter("*.json"));
+    source.setFilter(compositeFileListFilter);
+    return source;
+  }
+
+  @Bean
+  @Transformer(inputChannel = "jsonFileInputChannel", outputChannel = "jsonOrderObjectChannel")
+  public JsonToObjectTransformer jsonToObjectTransformer() {
+    return new JsonToObjectTransformer(Order.class);
+  }
+
+  @Bean
   public MessageChannel jsonOrderObjectChannel() {
     return MessageChannels.publishSubscribe().get();
   }
 
-  // TODO
+  @Splitter(inputChannel = "jsonOrderObjectChannel", outputChannel = "jsonOrderItemObjectChannel")
+  public List<OrderItem> extractOrderItemsFromOrder(Order order) {
+    return order.getItems();
+  }
 
 }
