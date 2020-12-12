@@ -41,18 +41,18 @@ public class Assignment5BonusConfig {
     FileUtils.cleanDirectory(TEMP_FOLDER);
   }
 
-  @Bean
-  public IntegrationFlow apparelSendMailFlow() {
-    return null; // TODO - Use IntegrationFlows
-  }
-
-  @Bean
-  public IntegrationFlow electronicsSendMailFlow() {
-    return null; // TODO - Use IntegrationFlows
-  }
-
-  @Bean
-  public IntegrationFlow uncategorizedLogging() {
-    return null; // TODO - Use IntegrationFlows
-  }
+//  @Bean
+//  public IntegrationFlow apparelSendMailFlow() {
+//    return null; // TODO - Use IntegrationFlows
+//  }
+//
+//  @Bean
+//  public IntegrationFlow electronicsSendMailFlow() {
+//    return null; // TODO - Use IntegrationFlows
+//  }
+//
+//  @Bean
+//  public IntegrationFlow uncategorizedLogging() {
+//    return null; // TODO - Use IntegrationFlows
+//  }
 }
